@@ -6,7 +6,6 @@ import csv
 from backend import process_image
 from datetime import datetime
 import time
-from PIL import Image
 
 try:
     from reportlab.lib import colors
@@ -55,11 +54,10 @@ LABEL_THEME = {
 
 
 def _image_bgr_to_png_bytes(image_bgr):
-    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-    pil_image = Image.fromarray(image_rgb)
-    img_buffer = io.BytesIO()
-    pil_image.save(img_buffer, format="PNG")
-    return img_buffer.getvalue()
+    success, png_img = cv2.imencode(".png", image_bgr)
+    if not success:
+        return b""
+    return png_img.tobytes()
 
 
 def _build_pdf_report(result, recommendations, timestamp, original_img, annotated_img):
