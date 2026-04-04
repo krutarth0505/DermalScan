@@ -227,10 +227,8 @@ Mobile application integration
 GitHub Repository:
 👉 https://github.com/krutarth0505/DermalScan.git
 
-Dataset Link:
-👉 https://drive.google.com/drive/folders/1oDO54S6tc-GX5w61X9AvWG-z8dgvZoKy?usp=sharing
 
 👩‍🎓 Author
 
-Krutarth Gosavi
+Krutarth Gosavi 
 B.E – Computer Science Engineering (Artificial Intelligence & Machine Learning)
