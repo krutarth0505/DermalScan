@@ -1,8 +1,8 @@
 import streamlit as st
 import numpy as np
 import cv2
-import pandas as pd
 import io
+import csv
 from backend import process_image
 from datetime import datetime
 import time
@@ -493,12 +493,21 @@ if img is not None:
 
         report_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        df = pd.DataFrame(results)
-        df["probabilities"] = df["probabilities"].apply(str)
+        csv_buffer = io.StringIO()
+        csv_writer = csv.DictWriter(
+            csv_buffer,
+            fieldnames=["label", "confidence", "probabilities", "face_id", "bbox", "warning"]
+        )
+        csv_writer.writeheader()
+        for row in results:
+            out_row = dict(row)
+            out_row["probabilities"] = str(out_row.get("probabilities", {}))
+            out_row["bbox"] = str(out_row.get("bbox", None))
+            csv_writer.writerow(out_row)
 
         st.download_button(
             "📄 Download CSV Report",
-            df.to_csv(index=False).encode("utf-8"),
+            csv_buffer.getvalue().encode("utf-8"),
             file_name=f"dermalscan_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv"
         )
