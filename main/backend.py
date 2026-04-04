@@ -2,18 +2,31 @@ import cv2
 import numpy as np
 import time
 from pathlib import Path
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.efficientnet import preprocess_input
 
+TF_AVAILABLE = True
+TF_IMPORT_ERROR = ""
 
-# Load trained model
+try:
+    from tensorflow.keras.models import load_model
+    from tensorflow.keras.applications.efficientnet import preprocess_input
+except Exception as exc:
+    TF_AVAILABLE = False
+    TF_IMPORT_ERROR = str(exc)
 
-model = load_model(
-    str(Path(__file__).resolve().parent / "best_balanced1_noaug.keras")
-)
 
 # Class labels
 labels = ["Clear Skin", "Dark Spots", "Puffy Eyes", "Wrinkles"]
+
+# Load trained model
+model = None
+if TF_AVAILABLE:
+    try:
+        model = load_model(
+            str(Path(__file__).resolve().parent / "best_balanced1_noaug.keras")
+        )
+    except Exception as exc:
+        TF_AVAILABLE = False
+        TF_IMPORT_ERROR = str(exc)
 
 # Haar Cascade
 face_cascade = cv2.CascadeClassifier(
@@ -64,6 +77,9 @@ def preprocess_face(face_img):
 # Prediction
 
 def predict_skin_condition(face_img):
+    if not TF_AVAILABLE or model is None:
+        raise RuntimeError("TensorFlow backend is unavailable")
+
     processed = preprocess_face(face_img)
     preds = model.predict(processed, verbose=0)[0]
 
@@ -81,6 +97,22 @@ def predict_skin_condition(face_img):
 
 def process_image(img):
     start_time = time.time()
+
+    if not TF_AVAILABLE or model is None:
+        fallback = {
+            "label": "Model Unavailable",
+            "confidence": 0.0,
+            "probabilities": {label: 0.0 for label in labels},
+            "face_id": 1,
+            "bbox": None,
+            "warning": (
+                "Prediction backend is unavailable in this environment. "
+                f"Details: {TF_IMPORT_ERROR}"
+            )
+        }
+        annotated_img = img.copy()
+        annotated_img = draw_label(annotated_img, fallback["label"], fallback["confidence"])
+        return annotated_img, [fallback]
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(

@@ -432,6 +432,9 @@ if img is not None:
 
         r = results[selected_face_idx]
 
+        if r.get("warning"):
+            st.warning(r["warning"])
+
         # CONDITION
         st.markdown("<div class='apple-card'>", unsafe_allow_html=True)
         st.markdown("<div class='apple-title'>Detected Skin Condition</div>", unsafe_allow_html=True)
